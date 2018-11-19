@@ -40,12 +40,21 @@ if(exists(select Sno from S where Sno = '95001'))
 	if(exists(select Cno from C where Cno = 'c123'))
 		insert into SC(Sno, Cno) values('95001', 'c123');
 
--- 求各系学生的平均成绩，并把结果写入数据库
-select S.Sdept, S.Sno, AVG(Grade)
-from SC, S
-Group By S.Sdept, S.Sno;
+-- 6.求各系学生的平均成绩，并把结果写入数据库
+create table demo(
+	Sdept char(50) not null,
+	score int not null,
+);
 
--- 将 "CS" 系全体学生的成绩置为0
+insert into demo(Sdept, score)
+select Sdept, AVG(Grade)
+from S, SC
+where S.Sno = SC.Sno
+group by Sdept;
+
+select * from demo;
+
+-- 7.将 "CS" 系全体学生的成绩置为0
 update SC
 set Grade = 0
 where Sno in
@@ -53,7 +62,8 @@ where Sno in
 from S
 where Sdept = 'CS')
 
--- 删除“CS”系全体学生的选课记录
+
+-- 8.删除“CS”系全体学生的选课记录
 delete
 from SC
 where Sno in
@@ -61,7 +71,8 @@ where Sno in
 from S
 where Sdept = 'CS')
 
--- 删除学号为“S1”的相关信息
+
+-- 9.删除学号为“S1”的相关信息
 delete
 from SC
 where Sno = '201215121';
@@ -70,7 +81,8 @@ delete
 from S
 where Sno = '201215121';
 
--- 将学号为“S1”的学生的学号修改为“S001”
+
+-- 10.将学号为“S1”的学生的学号修改为“S001”
 insert into SC(Sno, Cno) values('S001', '4');
 
 update S
@@ -84,6 +96,52 @@ where Sno = 'S001';
 update SC
 set Sno = 'S001'
 where Sno = '201215121';
+
+
+-- 11.把平均成绩大于80分的男同学的学号和平均成绩存入另一个表
+create table a_grade(
+	Sno nchar(11) not NULL,
+	average_grade int,
+);
+
+insert into a_grade(Sno, average_grade)
+select Sno, AVG(Grade)
+from SC
+where Sno in (select Sno
+			from S
+			where Ssex = '男')
+group by Sno having AVG(Grade) > 80;
+
+
+-- 12.把选修了课程名为“数据结构”的学生的成绩提高10%
+update SC
+set Grade = Grade * 1.1
+where Cno = (
+				select Cno
+				from C
+				where Cname = '数据结构'
+			)
+
+
+-- 13.把选修了“C2”号课程，且成绩低于该门课程的平均成绩的成绩提高5%
+update SC
+set Grade = Grade * 1.05
+where Cno = '2' and Grade < (
+								select AVG(Grade)
+								from SC
+								where Cno = 2
+							)
+
+
+-- 14.把选修了“C2”号课程，且成绩低于该门课程的平均成绩的学生成绩删除掉
+update SC
+set Grade = null
+where Cno = 2 and Grade < (
+							select AVG(Grade)
+							from SC
+							where Cno = 2
+						  );
+
 
 select * from S;
 select * from C;

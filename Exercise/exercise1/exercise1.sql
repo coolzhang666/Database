@@ -46,3 +46,5 @@ CREATE INDEX SCgrade ON SC(Grade);
 
 -- É¾³ýSC±í
 drop table SC;
+drop table S;
+drop table C;
